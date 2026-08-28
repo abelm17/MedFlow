@@ -19,7 +19,7 @@ class User(Base):
     role: Mapped[UserRole]= mapped_column(SqlEnum(
         UserRole,
         name= "user_role",
-        values_callable= lambda enum_cls: (member for member in enum_cls)
+        values_callable= lambda enum_cls: [member.value for member in enum_cls]
     ))
     is_active: Mapped[bool]= mapped_column(Boolean, default= True)
 

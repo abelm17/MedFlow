@@ -21,7 +21,7 @@ class ServiceReport(Base):
 
     id: Mapped[int]= mapped_column(primary_key=True)
     order_id: Mapped[int]= mapped_column(Integer, ForeignKey("work_orders.id"))
-    file_url: Mapped[str]= mapped_column(Text(75))
+    file_url: Mapped[str]= mapped_column(Text)
     notes: Mapped[str | None]= mapped_column(Text, nullable= True)
     created_at: Mapped[datetime]= mapped_column(DateTime, server_default=func.now())
 

@@ -5,7 +5,7 @@ Package Init
 """
 
 from .base import Base
-from .enums import EquipmentStatus, OrderStatus, OrderPriority
+from .enums import EquipmentStatus, OrderStatus, OrderPriority, UserRole
 from .equipment import Equipment
 from .hospital import Hospital
 from .service_report import ServiceReport
@@ -16,7 +16,7 @@ from .work_order import WorkOrder
 
 __all__= [
     "Base",
-    "EquipmentStatus", "OrderStatus", "OrderPriority",
+    "EquipmentStatus", "OrderStatus", "OrderPriority", "UserRole",
     "Equipment", "Hospital", "ServiceReport", "Technician",
     "User",
     "WorkOrder"
