@@ -11,12 +11,16 @@ class UserBase(BaseModel):
     username: str= Field(min_length=3, max_length=50)
     role: UserRole
 
-class UserCreate(BaseModel):
+class UserCreate(UserBase):
     password: str= Field(min_length=8)
 
 class UserRead(UserBase):
     id: int
     model_config= ConfigDict(from_attributes= True)
+
+class UserUpdate(BaseModel):
+    username: str | None= Field(default= None, min_length=3, max_length=50)
+    role: UserRole | None
 
 class Token(BaseModel):
     access_token: str
