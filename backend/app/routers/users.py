@@ -28,6 +28,20 @@ async def list_users(
     if role is not None:
         statement= statement.where(User.role == role)
 
+    await db.execute(statement)
+
+router.get("/{user_id}", response_model= UserRead)
+async def get_user(equipment_id: int, db: AsyncSession= Depends(get_db)) -> User:
+    user= await db.get(User, equipment_id)
+
+    if user is None:
+        raise HTTPException(
+            status_code= status.HTTP_404_NOT_FOUND,
+            detail= f"Equipment {equipment_id} not found"
+        )
+
+    return user
+
 # API for creating a new user
 # We'll come back to this, need to hash out the security issue of admin choosing password
 @router.post("", response_model=UserRead)
@@ -53,6 +67,9 @@ async def update_user(user_id: int, payload: UserUpdate, db: AsyncSession= Depen
     updates= payload.model_dump(exclude_unset=True)
     for field, value in updates:
         setattr(user, field, value)
+
+    await db.commit()
+    await db.refresh(user)
 
 # API for deleting a user
 @router.delete("{user_id}", status_code=status.HTTP_200_OK)

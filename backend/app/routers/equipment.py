@@ -33,7 +33,7 @@ async def list_equipment(max_battery: Decimal | None = Query(
     result= await db.execute(statement)
     return list(result.scalars().all())
 
-# API for seraching for equipment by id
+# API for searching for equipment by id
 @router.get("/{equipment_id}", response_model= EquipmentRead)
 async def get_equipment(equipment_id: int, db: AsyncSession= Depends(get_db)) -> Equipment:
     equipment= await db.get(Equipment, equipment_id)
@@ -41,7 +41,7 @@ async def get_equipment(equipment_id: int, db: AsyncSession= Depends(get_db)) ->
     if equipment is None:
         raise HTTPException(
             status_code= status.HTTP_404_NOT_FOUND,
-            detail= f"Device {equipment_id} not found"
+            detail= f"Equipment {equipment_id} not found"
         )
 
     return equipment
@@ -63,7 +63,7 @@ async def delete_equipment(equipment_id: int, db: AsyncSession= Depends(get_db))
     if equipment is None:
         raise HTTPException(
             status_code= status.HTTP_404_NOT_FOUND,
-            detail= f"Device {equipment_id} not found"
+            detail= f"Equipment {equipment_id} not found"
         )
     else:
         await db.delete(equipment)

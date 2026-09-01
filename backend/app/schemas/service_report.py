@@ -21,3 +21,9 @@ class ServiceReportCreate(ServiceReportBase):
 class ServiceReportRead(ServiceReportBase):
     id: int
     model_config= ConfigDict(from_attributes=True)
+
+class ServiceReportUpdate(BaseModel):
+    work_order_id: int | None
+    file_url: str | None
+    notes: str | None
+    timestamp: datetime
