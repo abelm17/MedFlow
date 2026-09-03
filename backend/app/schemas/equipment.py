@@ -4,7 +4,7 @@ from app.models import EquipmentStatus
 from decimal import Decimal
 
 class EquipmentBase(BaseModel):
-    serial_number: str= Field(min_length=1, max_length=50)
+    serial_number: int
     model: str= Field(min_length=1, max_length=100)
     status: EquipmentStatus= EquipmentStatus.AVAILABLE
     charge_level: Decimal= Field(ge= 0, le= 100)

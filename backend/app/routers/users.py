@@ -11,7 +11,7 @@ from sqlalchemy import select
 
 from app.models import User, UserRole
 from app.schemas.user import UserCreate, UserRead, UserUpdate
-from app.dependencies import get_db
+from app.dependencies import get_db, require_role
 
 router= APIRouter(prefix="/users", tags=["users"])
 
@@ -22,7 +22,8 @@ async def list_users(
         default= None,
         description= "Filter by user roles"
     ),
-    db: AsyncSession= Depends(get_db)
+    db: AsyncSession= Depends(get_db),
+    _: User= Depends(require_role(UserRole.CLINICAL_ADMIN, UserRole.AUDITOR)),
 ) -> list[User]:
     statement= select(User)
     if role is not None:
@@ -31,7 +32,11 @@ async def list_users(
     await db.execute(statement)
 
 router.get("/{user_id}", response_model= UserRead)
-async def get_user(equipment_id: int, db: AsyncSession= Depends(get_db)) -> User:
+async def get_user(
+        equipment_id: int, 
+        db: AsyncSession= Depends(get_db),
+        _: User= Depends(require_role(UserRole.CLINICAL_ADMIN, UserRole.AUDITOR)),
+        ) -> User:
     user= await db.get(User, equipment_id)
 
     if user is None:
@@ -42,20 +47,15 @@ async def get_user(equipment_id: int, db: AsyncSession= Depends(get_db)) -> User
 
     return user
 
-# API for creating a new user
-# We'll come back to this, need to hash out the security issue of admin choosing password
-@router.post("", response_model=UserRead)
-async def create_user(payload: UserCreate, db: AsyncSession= Depends(get_db), status_code= status.HTTP_201_CREATED):
-    user= User(**payload.model_dump())
-
-    db.add(user)
-    await db.commit()
-    await db.refresh(user)
-    return user
 
 # API for updating a user
 @router.patch("{user_id}", response_model=UserRead, status_code= status.HTTP_202_ACCEPTED)
-async def update_user(user_id: int, payload: UserUpdate, db: AsyncSession= Depends(get_db)) -> User:
+async def update_user(
+    user_id: int, 
+    payload: UserUpdate, 
+    db: AsyncSession= Depends(get_db),
+    _: User= Depends(require_role(UserRole.CLINICAL_ADMIN)),
+    ) -> User:
     user= await db.get(User, user_id)
 
     if user is None:
@@ -73,7 +73,11 @@ async def update_user(user_id: int, payload: UserUpdate, db: AsyncSession= Depen
 
 # API for deleting a user
 @router.delete("{user_id}", status_code=status.HTTP_200_OK)
-async def delete_user(user_id: int, db: AsyncSession= Depends(get_db)):
+async def delete_user(
+    user_id: int, 
+    db: AsyncSession= Depends(get_db),
+    _: User= Depends(require_role(UserRole.CLINICAL_ADMIN)),
+    ):
     user= await db.get(User, user_id)
 
     if user is None:

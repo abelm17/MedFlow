@@ -9,15 +9,16 @@ from .enums import EquipmentStatus, OrderStatus, OrderPriority, UserRole
 from .equipment import Equipment
 from .hospital import Hospital
 from .service_report import ServiceReport
-from .technician import Technician
 from .user import User
 from .work_order import WorkOrder
+from .technicians import Technician
 
 
 __all__= [
     "Base",
     "EquipmentStatus", "OrderStatus", "OrderPriority", "UserRole",
-    "Equipment", "Hospital", "ServiceReport", "Technician",
+    "Equipment", "Hospital", "ServiceReport",
     "User",
+    "Technician",
     "WorkOrder"
 ]

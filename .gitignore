@@ -11,3 +11,6 @@ venv/
 # IDE
 .vscode/
 .idea/
+
+reset_command.txt
+database_adjustment.sql

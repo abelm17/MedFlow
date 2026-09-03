@@ -16,6 +16,7 @@ class UserCreate(UserBase):
 
 class UserRead(UserBase):
     id: int
+    hospital_id: int
     model_config= ConfigDict(from_attributes= True)
 
 class UserUpdate(BaseModel):

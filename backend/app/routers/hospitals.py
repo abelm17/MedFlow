@@ -7,16 +7,19 @@ API's for admin to view/change hospital information
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.models import Hospital
+from app.models import Hospital, User, UserRole
 from app.schemas.hospital import HospitalRead, HospitalCreate, HospitalUpdate
-from app.dependencies import get_db
+from app.dependencies import get_db, require_role, get_current_user
 
 
 router= APIRouter(prefix= "/hospitals", tags= ["hospitals"])
 
 # API for viewing hospitals
 @router.get("", response_model= list[HospitalRead])
-async def list_hospitals(db: AsyncSession= Depends(get_db)) -> list[Hospital]:
+async def list_hospitals(
+    db: AsyncSession= Depends(get_db),
+    _: User= Depends(require_role(UserRole.CLINICAL_ADMIN, UserRole.AUDITOR))
+    ) -> list[Hospital]:
     statement= select(Hospital).order_by(Hospital.id)
     result= await db.execute(statement)
     return list(result.scalars().all())
@@ -24,7 +27,11 @@ async def list_hospitals(db: AsyncSession= Depends(get_db)) -> list[Hospital]:
 
 # API for creating hospitals
 @router.post("", response_model=HospitalRead, status_code=status.HTTP_201_CREATED)
-async def create_hospital(payload: HospitalCreate, db: AsyncSession= Depends(get_db)):
+async def create_hospital(
+    payload: HospitalCreate, 
+    db: AsyncSession= Depends(get_db),
+    _: User= Depends(require_role(UserRole.CLINICAL_ADMIN))
+    ):
     hospital= Hospital(**payload.model_dump())
 
     db.add(hospital)
@@ -34,7 +41,12 @@ async def create_hospital(payload: HospitalCreate, db: AsyncSession= Depends(get
 
 # API for updating hospitals
 @router.patch("/{hospital_id}", response_model= HospitalRead)
-async def update_hospital(hospital_id: int, payload: HospitalUpdate, db: AsyncSession= Depends(get_db)) -> Hospital:
+async def update_hospital(
+    hospital_id: int, 
+    payload: HospitalUpdate, 
+    db: AsyncSession= Depends(get_db),
+    _: User= Depends(require_role(UserRole.CLINICAL_ADMIN))
+    ) -> Hospital:
     hospital= await db.get(Hospital, hospital_id)
 
     if hospital is None:
@@ -54,7 +66,11 @@ async def update_hospital(hospital_id: int, payload: HospitalUpdate, db: AsyncSe
 
 # API for deleting hospitals
 @router.delete("/{hospital_id}", status_code=status.HTTP_200_OK)
-async def delete_hospital(hospital_id: int, db: AsyncSession= Depends(get_db)):
+async def delete_hospital(
+    hospital_id: int, 
+    db: AsyncSession= Depends(get_db),
+    _: User= Depends(require_role(UserRole.CLINICAL_ADMIN))
+    ):
     hospital= await db.get(Hospital, hospital_id)
 
     if hospital is None:

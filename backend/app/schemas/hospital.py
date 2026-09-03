@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class HospitalBase(BaseModel):
     name: str= Field(min_length=3, max_length=75)
-    location: str= Field(min_length=2, max_length=25)
+    location_region: str= Field(min_length=2, max_length=25)
     capacity: int
     supervisor_id: int
 
@@ -22,6 +22,6 @@ class HospitalRead(HospitalBase):
 
 class HospitalUpdate(BaseModel):
     name: str | None= Field(default= None, min_length=3, max_length=75)
-    location: str | None= Field(default= None, min_length=2, max_length=25)
+    location_region: str | None= Field(default= None, min_length=2, max_length=25)
     capacity: int | None= None
     supervisor_id: int | None= None

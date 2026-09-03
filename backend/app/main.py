@@ -5,7 +5,7 @@ FastAPI Application Entry Point
 """
 
 from fastapi import FastAPI
-from app.routers import equipment, work_orders, hospitals, users
+from app.routers import equipment, work_orders, hospitals, users, service_reports
 
 app= FastAPI(
     title= "MedFlow Command Center",
@@ -14,8 +14,9 @@ app= FastAPI(
 )
 
 app.include_router(equipment.router)
-app.include_router(work_orders.router)
 app.include_router(hospitals.router)
+app.include_router(work_orders.router)
+app.include_router(service_reports.router)
 app.include_router(users.router)
 
 @app.get("/health", tags=["health"])

@@ -15,15 +15,18 @@ from .base import Base
 if TYPE_CHECKING:
     from .hospital import Hospital
     from .work_order import WorkOrder
+    from .user import User
 
 class Technician(Base):
     __tablename__= "technicians"
     id: Mapped[int]= mapped_column(primary_key=True)
     name: Mapped[str]= mapped_column(String(50))
+
     facility_id: Mapped[int]= mapped_column(Integer, ForeignKey("hospitals.id"))
 
     hospital: Mapped["Hospital"]= relationship(back_populates="technicians")
-    orders: Mapped[list["WorkOrder"]]= relationship(back_populates="technician")
+    work_orders: Mapped[list["WorkOrder"]]= relationship(back_populates="technician")
+    user: Mapped["User | None"]= relationship(back_populates="technician")
 
     def __repr__(self) -> str:
         return (f"Technician (id: {self.id}, name: {self.name!r}, "

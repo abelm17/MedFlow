@@ -15,7 +15,7 @@ from .enums import OrderPriority, OrderStatus
 
 if TYPE_CHECKING:
     from .equipment import Equipment
-    from .technician import Technician
+    from .technicians import Technician
     from .service_report import ServiceReport
 
 
@@ -38,9 +38,10 @@ class WorkOrder(Base):
     equipment_id: Mapped[int]= mapped_column(Integer, ForeignKey("equipment.id"))
     technician_id: Mapped[int]= mapped_column(Integer, ForeignKey("technicians.id"))
 
-    equipment: Mapped["Equipment"]= relationship(back_populates="orders")
-    technician: Mapped["Technician"]= relationship(back_populates= "orders")
-    service_reports: Mapped[list["ServiceReport"]]= relationship(back_populates="order")
+    equipment: Mapped["Equipment"]= relationship(back_populates="work_orders")
+    technician: Mapped["Technician"]= relationship(back_populates= "work_orders")
+
+    service_reports: Mapped[list["ServiceReport"]]= relationship(back_populates="work_order")
 
     def mark_completed(self):
         self.status= OrderStatus.COMPLETED

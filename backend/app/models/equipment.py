@@ -37,7 +37,7 @@ class Equipment(Base):
     facility_id: Mapped[int]= mapped_column(Integer, ForeignKey("hospitals.id"))
 
     hospital: Mapped["Hospital"]= relationship(back_populates= "equipment")
-    orders: Mapped[list["WorkOrder"]]= relationship(back_populates= "equipment")
+    work_orders: Mapped[list["WorkOrder"]]= relationship(back_populates= "equipment")
 
 
     LOW_BATTERY_THRESHOLD: int= 20
@@ -45,7 +45,9 @@ class Equipment(Base):
     def is_low_battery(self, threshold: int | None) -> bool:
         limit= threshold if threshold is not None else Equipment.LOW_BATTERY_THRESHOLD
         return self.charge_level < limit
-
+    
+    def needs_maintenance(self) -> bool:
+        return self.status == EquipmentStatus.MAINTENANCE
 
     def __repr__(self) -> str:
         return (f"Equipment(id= {self.id}, serial_number= {self.serial_number}, model= {self.model}, "
