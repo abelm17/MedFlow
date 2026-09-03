@@ -7,17 +7,17 @@
 
 
 # $1 is referring to the first argument after the script name
-TARGET="{$1:local}"
+TARGET="${1:-local}"
 
 # Answers question, which db are we seeding? 
-if ["$TARGET" == "local"]; then
+if [ "$TARGET" == "local" ]; then
     ## TODO: Replace details in the db url below with YOUR details
-    export DATABASE_URL= "postgresql+asyncpg://<user>:<your-password>@127.0.0.1:5432/medflow"
+    export DATABASE_URL= "postgresql+asyncpg://postgres:<password>@127.0.0.1:5432/medflow"
     PSQL_HOST= "127.0.0.1"
     PSQL_DB="medflow"
-elif [ "$TARGET" == "rds"]; then
+elif [ "$TARGET" == "rds" ]; then
     ## TODO: Replace details in the db url with YOUR REMOTE RDS details
-    export DATABASE_URL= "postgresql+asyncpg://<user>:<password>@<your-rds-endpoint>:/5432/medflow"
+    export DATABASE_URL= "postgresql+asyncpg://postgres:<password>@<your-rds-endpoint>:/5432/medflow"
     PSQL_HOST= "<your-rds-endpoint>"
     PSQL_DB= "medflow"
 else
