@@ -22,6 +22,9 @@ class OrderRead(OrderBase):
 
     model_config= ConfigDict(from_attributes= True)
 
+class OrderCreate(OrderBase):
+    """"""
+
 class DiscrepancyRead(BaseModel):
     order_id: int
     title: str= Field(min_length=1, max_length= 150)

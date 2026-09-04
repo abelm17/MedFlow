@@ -9,8 +9,8 @@ from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_db, get_current_user, require_role
-from app.schemas.work_order import DiscrepancyRead, OrderRead, OrderStatusUpdate
-from app.models import WorkOrder, User, UserRole, Equipment, OrderPriority, OrderStatus
+from app.schemas.work_order import DiscrepancyRead, OrderRead, OrderStatusUpdate, OrderCreate
+from app.models import WorkOrder, User, UserRole, Equipment, OrderPriority, OrderStatus, Technician
 
 
 
@@ -18,27 +18,33 @@ from app.models import WorkOrder, User, UserRole, Equipment, OrderPriority, Orde
 router= APIRouter(prefix="/work_orders", tags= ["work_orders"])
 
 # API for displaying work orders with co-location discrepancies
-@router.get("/discrepancies", response_model=list[DiscrepancyRead])
+@router.get("/discrepancies")
 async def list_colocation_discrepancies(
-    # """priority: """
+    priority: OrderPriority | None= Query(default=None),
     db: AsyncSession= Depends(get_db),
-    _: User= Depends(get_current_user)
+    current_user: User= Depends(get_current_user)
 ):
     statement= (
         select(
             WorkOrder.id.label("work_order_id"),
             WorkOrder.title,
-            Equipment.id.label("equipment_id"),
-            User.id.label("technician_id")
+            Equipment.facility_id.label("equipment_facility_id"),
+            Technician.facility_id.label("technician_facility_id")
         )
         .join(Equipment, Equipment.id == WorkOrder.equipment_id)
-        .join(User, User.id == WorkOrder.technician_id)
-        .where(WorkOrder.equipment_id != WorkOrder.technician_id)
-        .order_by(WorkOrder.id)
+        .join(Technician, Technician.id == WorkOrder.technician_id)
+        .where(Equipment.facility_id != Technician.facility_id)
     )
 
+    if current_user.role == UserRole.FIELD_TECHNICIAN:
+        statement = statement.where(
+            WorkOrder.technician_id == current_user.technician_id
+        )
+
+    statement= statement.order_by(WorkOrder.id)
     result= await db.execute(statement)
-    return (list(result.scalars().all()))
+
+    return result.mappings().all()
 
 # API for displaying all work orders
 @router.get("", response_model= list[OrderRead])
@@ -56,11 +62,11 @@ async def list_orders(
 ):
     statement= select(WorkOrder)
     if current_user.role == UserRole.FIELD_TECHNICIAN:
-        statement= statement.where(WorkOrder.technician_id == current_user.id)
+        statement= statement.where(WorkOrder.technician_id == current_user.technician_id)
     if priority is not None:
-        statement= (select(WorkOrder).where(WorkOrder.priority == priority))
+        statement= (statement.where(WorkOrder.priority == priority))
     if status is not None: 
-        statement= (select(WorkOrder).where(WorkOrder.status == status))
+        statement= (statement.where(WorkOrder.status == status))
     statement= statement.order_by(WorkOrder.id)
 
     result= await db.execute(statement)
@@ -83,7 +89,7 @@ async def update_order_status(
             detail= f"Work order {work_order_id} not found"
         )
 
-    if current_user.role == UserRole.FIELD_TECHNICIAN and work_order.technician_id != current_user.id:
+    if current_user.role == UserRole.FIELD_TECHNICIAN and work_order.technician_id != current_user.technician_id:
         raise HTTPException(
             status_code= status.HTTP_403_FORBIDDEN,
             detail= "Work order not assigned to user"
@@ -98,3 +104,33 @@ async def update_order_status(
     await db.commit()
     await db.refresh(work_order)
     return work_order
+
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_order(
+    payload: OrderCreate,
+    db: AsyncSession= Depends(get_db),
+    _: User= Depends(require_role(UserRole.CLINICAL_ADMIN)),
+):
+    order= WorkOrder(**payload.model_dump())
+    db.add(order)
+    await db.commit()
+    await db.refresh(order)
+    return order
+
+
+@router.delete("/{work_order_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_order(
+    work_order_id: int, 
+    db: AsyncSession= Depends(get_db),
+    _: User= Depends(require_role(UserRole.CLINICAL_ADMIN)),
+    ):
+    order= await db.get(WorkOrder, work_order_id)
+
+    if order is None:
+        raise HTTPException(
+            status_code= status.HTTP_404_NOT_FOUND,
+            detail= f"Order {work_order_id} not found"
+        )
+
+    await db.delete(order)
+    await db.commit()

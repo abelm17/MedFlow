@@ -6,9 +6,10 @@ API's for admin to view/change hospital information
 
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.models import Hospital, User, UserRole
+from sqlalchemy import select, func
+from app.models import Hospital, User, UserRole, Equipment, EquipmentStatus
 from app.schemas.hospital import HospitalRead, HospitalCreate, HospitalUpdate
+from app.schemas.maintenance_flags import MaintenanceFlag
 from app.dependencies import get_db, require_role, get_current_user
 
 
@@ -56,7 +57,7 @@ async def update_hospital(
         )
 
     updates= payload.model_dump(exclude_unset=True)
-    for field, value in updates.items:
+    for field, value in updates.items():
         setattr(hospital, field, value)
 
     await db.commit()

@@ -13,6 +13,7 @@ from .enums import UserRole
 
 if TYPE_CHECKING:
     from .technicians import Technician
+    from .supervisors import Supervisor
 
 class User(Base):
     __tablename__= "users"
@@ -28,6 +29,8 @@ class User(Base):
 
     technician_id: Mapped[int | None]= mapped_column(Integer, ForeignKey("technicians.id"), unique=True)
     technician: Mapped["Technician | None"] = relationship(back_populates= "user", uselist=False)
+    supervisor_id: Mapped[int | None]= mapped_column(Integer, ForeignKey("supervisors.id"), unique=True)
+    supervisor: Mapped["Supervisor | None"] = relationship(back_populates= "user", uselist=False)
 
     def __repr__(self):
         return (f"User(id= {self.id}, username= {self.username!r}, role= {self.role.value})")

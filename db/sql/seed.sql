@@ -1,8 +1,10 @@
 -- MedFlow Clinical Equipment Command Center - Business Data Seed
--- Seeds hospitals, technicians, equipment, work_orders, and service_reports.
+-- Seeds supervisors, hospitals, technicians, equipment, work_orders, and
+-- service_reports.
 -- Run AFTER create_tables.py has created the schema.
 -- Run BEFORE the Python user-seeding script, since users.technician_id
--- references technicians.id.
+-- references technicians.id and users.supervisor_id references
+-- supervisors.id.
 --
 -- psql -U postgres -d medflow
 -- \i seed.sql
@@ -18,6 +20,11 @@
 --   - Hospitals 1 and 2 share supervisor_id 501, so a "technicians under
 --     Supervisor 501" query returns technicians from two different sites.
 
+-- Supervisors (must precede hospitals — hospitals.supervisor_id is a real FK)
+INSERT INTO supervisors (id, name) VALUES
+    (501, 'D. Whitfield'),
+    (502, 'K. Osei');
+
 -- Hospitals
 INSERT INTO hospitals (id, name, location_region, capacity, supervisor_id) VALUES
     (1, 'Atlanta Regional Medical Center', 'US-East', 50, 501),
@@ -25,12 +32,17 @@ INSERT INTO hospitals (id, name, location_region, capacity, supervisor_id) VALUE
     (3, 'Miami Coastal Clinic', 'US-East', 20, 502);
 
 -- Technicians
-INSERT INTO technicians (id, name, facility_id) VALUES
-    (1, 'R. Alvarez', 1),
-    (2, 'S. Kim', 1),
-    (3, 'T. Brooks', 2),
-    (4, 'J. Nguyen', 3),
-    (5, 'M. Patel', 1);
+-- supervisor_id mirrors each technician's home hospital's supervisor
+-- (hospital 1 & 2 -> supervisor 501, hospital 3 -> supervisor 502).
+-- Change this if you want a technician deliberately under a different
+-- supervisor than their hospital, same idea as the work-order co-location
+-- mismatches below.
+INSERT INTO technicians (id, name, facility_id, supervisor_id) VALUES
+    (1, 'R. Alvarez', 1, 501),
+    (2, 'S. Kim', 1, 501),
+    (3, 'T. Brooks', 2, 501),
+    (4, 'J. Nguyen', 3, 502),
+    (5, 'M. Patel', 1, 501);
 
 -- Equipment
 INSERT INTO equipment (id, serial_number, model, status, charge_level, facility_id) VALUES
@@ -67,6 +79,7 @@ INSERT INTO service_reports (work_order_id, file_url, notes) VALUES
     (8, 's3://medflow-reports/wo8-imaging-offline.pdf', 'Cart remains offline pending replacement part shipment.');
 
 -- Reset sequences so subsequent app-created rows don't collide with these IDs
+SELECT setval('supervisors_id_seq', (SELECT MAX(id) FROM supervisors));
 SELECT setval('hospitals_id_seq', (SELECT MAX(id) FROM hospitals));
 SELECT setval('technicians_id_seq', (SELECT MAX(id) FROM technicians));
 SELECT setval('equipment_id_seq', (SELECT MAX(id) FROM equipment));

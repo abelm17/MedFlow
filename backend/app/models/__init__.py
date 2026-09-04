@@ -12,6 +12,7 @@ from .service_report import ServiceReport
 from .user import User
 from .work_order import WorkOrder
 from .technicians import Technician
+from .supervisors import Supervisor
 
 
 __all__= [
@@ -19,6 +20,6 @@ __all__= [
     "EquipmentStatus", "OrderStatus", "OrderPriority", "UserRole",
     "Equipment", "Hospital", "ServiceReport",
     "User",
-    "Technician",
+    "Technician", "Supervisor",
     "WorkOrder"
 ]

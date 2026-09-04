@@ -12,11 +12,11 @@ class UserBase(BaseModel):
     role: UserRole
 
 class UserCreate(UserBase):
-    password: str= Field(min_length=8)
+    hashed_password: str= Field(min_length=8)
+    technician_id: int | None = None
 
 class UserRead(UserBase):
     id: int
-    hospital_id: int
     model_config= ConfigDict(from_attributes= True)
 
 class UserUpdate(BaseModel):

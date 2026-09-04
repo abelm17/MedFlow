@@ -27,6 +27,13 @@ async def seed_users() -> None:
                 username="admin",
                 hashed_password=hash_password("AdminPass123!"),
                 role=UserRole.CLINICAL_ADMIN,
+                supervisor_id=501,
+            ),
+            User(
+                username="admin_kosei",
+                hashed_password=hash_password("AdminPass123!"),
+                role=UserRole.CLINICAL_ADMIN,
+                supervisor_id=502,
             ),
             User(
                 username="auditor1",
